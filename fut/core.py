@@ -12,6 +12,7 @@ import json
 import random
 import re
 import time
+import base64
 
 import pyotp
 import requests
@@ -193,53 +194,63 @@ def nations(timeout=timeout):
     """
     rc = requests.get(messages_url, timeout=timeout)
     rc.encoding = 'utf-8'  # guessing takes huge amount of cpu time
-    rc = rc.text
-    data = re.findall('"search.nationName.nation([0-9]+)": "(.+)"', rc)
+    rc = decode(rc.text)
+    data = re.findall('"search.nationName.nation([0-9]+)": "([a-zA-Z\s]+)"', rc)
     nations = {}
     for i in data:
         nations[int(i[0])] = i[1]
     return nations
 
 
-def leagues(year=2019, timeout=timeout):
+def leagues(year=2020, timeout=timeout):
     """Return all leagues in dict {id0: league0, id1: legaue1}.
 
     :params year: Year.
     """
     rc = requests.get(messages_url, timeout=timeout)
     rc.encoding = 'utf-8'  # guessing takes huge amount of cpu time
-    rc = rc.text
-    data = re.findall('"global.leagueFull.%s.league([0-9]+)": "(.+)"' % year, rc)
+    rc = decode(rc.text)
+    data = re.findall('"global.leagueFull.%s.league([0-9]+)": "([a-zA-Z0-9\s]+)"' % year, rc)
     leagues = {}
     for i in data:
         leagues[int(i[0])] = i[1]
     return leagues
 
+def decode(messages):
+    messages64_json = json.loads(messages)
+    conf = {}
+    for (attribute, value) in messages64_json.items():
+        decoded_attr = str(base64.b64decode(attribute).decode('utf-8'))
+        decoded_val = str(base64.b64decode(value).decode('utf-8'))
+        conf[decoded_attr] = decoded_val
+    #print(json.dumps(conf))
+    return json.dumps(conf)
 
-def teams(year=2019, timeout=timeout):
+
+def teams(year=2020, timeout=timeout):
     """Return all teams in dict {id0: team0, id1: team1}.
 
     :params year: Year.
     """
     rc = requests.get(messages_url, timeout=timeout)
     rc.encoding = 'utf-8'  # guessing takes huge amount of cpu time
-    rc = rc.text
-    data = re.findall('"global.teamFull.%s.team([0-9]+)": "(.+)"' % year, rc)
+    rc = decode(rc.text)
+    data = re.findall('"global.teamabbr15.%s.team([0-9]+)": "([a-zA-Z\s]+)"' % year, rc)
     teams = {}
     for i in data:
         teams[int(i[0])] = i[1]
     return teams
 
 
-def stadiums(year=2019, timeout=timeout):
+def stadiums(year=2020, timeout=timeout):
     """Return all stadium in dict {id0: stadium0, id1: stadium1}.
 
     :params year: Year.
     """
     rc = requests.get(messages_url, timeout=timeout)
     rc.encoding = 'utf-8'  # guessing takes huge amount of cpu time
-    rc = rc.text
-    data = re.findall('"global.stadiumFull.%s.stadium([0-9]+)": "(.+)"' % year, rc)
+    rc = decode(rc.text)
+    data = re.findall('"global.stadiumFull.%s.stadium([0-9]+)": "([a-zA-Z\s]+)"' % year, rc)
     stadiums = {}
     for i in data:
         stadiums[int(i[0])] = i[1]
@@ -250,8 +261,8 @@ def balls(timeout=timeout):
     """Return all balls in dict {id0: ball0, id1: ball1}."""
     rc = requests.get(messages_url, timeout=timeout)
     rc.encoding = 'utf-8'  # guessing takes huge amount of cpu time
-    rc = rc.text
-    data = re.findall('"BallName_([0-9]+)": "(.+)"', rc)
+    rc = decode(rc.text)
+    data = re.findall('"BallName_([0-9]+)": "([a-zA-Z\s]+)"', rc)
     balls = {}
     for i in data:
         balls[int(i[0])] = i[1]
@@ -273,15 +284,15 @@ def players(timeout=timeout):
     return players
 
 
-def playstyles(year=2019, timeout=timeout):
+def playstyles(year=2020, timeout=timeout):
     """Return all playstyles in dict {id0: playstyle0, id1: playstyle1}.
 
     :params year: Year.
     """
     rc = requests.get(messages_url, timeout=timeout)
     rc.encoding = 'utf-8'  # guessing takes huge amount of cpu time
-    rc = rc.text
-    data = re.findall('"playstyles.%s.playstyle([0-9]+)": "(.+)"' % year, rc)
+    rc = decode(rc.text)
+    data = re.findall('"playstyles.playstyle([0-9]+)": "([a-zA-Z\s]+)"', rc)
     playstyles = {}
     for i in data:
         playstyles[int(i[0])] = i[1]
@@ -881,7 +892,7 @@ class Core(object):
         return self._players
 
     @property
-    def playstyles(self, year=2019):
+    def playstyles(self, year=2020):
         """Return all playstyles in dict {id0: playstyle0, id1: playstyle1}.
 
         :params year: Year.
@@ -901,7 +912,7 @@ class Core(object):
         return self._nations
 
     @property
-    def leagues(self, year=2019):
+    def leagues(self, year=2020):
         """Return all leagues in dict {id0: league0, id1: league1}.
 
         :params year: Year.
@@ -911,7 +922,7 @@ class Core(object):
         return self._leagues[year]
 
     @property
-    def teams(self, year=2019):
+    def teams(self, year=2020):
         """Return all teams in dict {id0: team0, id1: team1}.
 
         :params year: Year.
