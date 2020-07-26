@@ -28,26 +28,26 @@ class Pin(object):
         self.persona_id = persona_id
         self.dob = dob
         self.platform = platform
-        rc = requests.get('https://www.easports.com/fifa/ultimate-team/web-app/js/compiled_1.js').text
+        #rc = requests.get('https://www.easports.com/fifa/ultimate-team/web-app/js/compiled_1.js').text
 
-        self.taxv = re.search('taxv:"(.+?)"', rc).group(1)
-        self.tidt = re.search('tidt:"(.+?)"', rc).group(1)
+        #self.taxv = re.search('taxv:"(.+?)"', rc).group(1)
+        #self.tidt = re.search('tidt:"(.+?)"', rc).group(1)
 
-        self.sku = sku or re.search('enums.SKU.FUT="(.+?)"', rc).group(1)
+        #self.sku = sku or re.search('enums.SKU.FUT="(.+?)"', rc).group(1)
         self.rel = release_type
-        self.gid = re.search('gid:([0-9]+?)', rc).group(1)
+        #self.gid = re.search('gid:([0-9]+?)', rc).group(1)
         self.plat = 'web'  # where is it? WEB:?
-        self.et = re.search('et:"(.+?)"', rc).group(1)
-        self.pidt = re.search('pidt:"(.+?)"', rc).group(1)
-        self.v = re.search('APP_VERSION="([0-9\.]+)"', rc).group(1)
+        #self.et = re.search('et:"(.+?)"', rc).group(1)
+        #self.pidt = re.search('pidt:"(.+?)"', rc).group(1)
+        #self.v = re.search('APP_VERSION="([0-9\.]+)"', rc).group(1)
 
         self.r = requests.Session()
         self.r.headers = headers
         self.r.headers['Origin'] = 'https://www.easports.com'
         self.r.headers['Referer'] = 'https://www.easports.com/fifa/ultimate-team/web-app/'
-        self.r.headers['x-ea-game-id'] = self.sku
-        self.r.headers['x-ea-game-id-type'] = self.tidt
-        self.r.headers['x-ea-taxv'] = self.taxv
+        self.r.headers['x-ea-game-id'] = 'FUT20WEB'
+        self.r.headers['x-ea-game-id-type'] = 'easku'
+        self.r.headers['x-ea-taxv'] = '1.1'
 
         self.custom = {"networkAccess": "G"}  # wifi?
         # TODO?: full boot process when there is no session (boot start)
@@ -67,7 +67,7 @@ class Pin(object):
                 "en": en,
                 "pid": self.persona_id,
                 "pidm": {"nucleus": self.nucleus_id},
-                "pidt": self.pidt,
+                "pidt": 'persona',
                 "s": self.s,
                 "ts_event": self.__ts()
             }
@@ -106,19 +106,19 @@ class Pin(object):
         time.sleep(0.5 + random() / 50)
         data = {
             "custom": self.custom,
-            "et": self.et,
+            "et": 'client',
             "events": events,
-            "gid": self.gid,  # convert to int?
+            "gid": 0,  # convert to int?
             "is_sess": self.sid != '',
             "loc": "en_US",
             "plat": self.plat,
-            "rel": self.rel,
+            "rel": 'prod',
             "sid": self.sid,
-            "taxv": self.taxv,  # convert to float?
-            "tid": self.sku,
-            "tidt": self.tidt,
+            "taxv": '1.1',  # convert to float?
+            "tid": 'FUT20WEB',
+            "tidt": 'easku',
             "ts_post": self.__ts(),
-            "v": self.v
+            "v": '20.1.0'
         }
         # print(data)  # DEBUG
         if not fast:

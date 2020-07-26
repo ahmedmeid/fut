@@ -332,7 +332,7 @@ class Core(object):
                   'locale': 'en_US',
                   'redirect_uri': 'https://www.easports.com/fifa/ultimate-team/web-app/auth.html',
                   'release_type': 'prod',
-                  'scope': 'basic.identity offline signin'}
+                  'scope': 'basic.identity offline signin basic.entitlement basic.persona'}
         self.r.headers['Referer'] = 'https://www.easports.com/fifa/ultimate-team/web-app/'
         rc = self.r.get('https://accounts.ea.com/connect/auth', params=params, timeout=self.timeout)
         # TODO: validate (captcha etc.)
@@ -459,7 +459,7 @@ class Core(object):
         else:
             self.r.headers = headers.copy()  # i'm chrome browser now ;-)
 
-        pre_game_sku = 'FFA19'  # TODO: maybe read from shards v2
+        pre_game_sku = 'FFA20'  # TODO: maybe read from shards v2
         if platform == 'pc':  # TODO: get this from shards
             game_sku = '%sPCC' % pre_game_sku
         elif platform == 'xbox':
@@ -477,7 +477,7 @@ class Core(object):
         #    return True  # no need to log in again
         # emulate
 
-        pre_sku = 'FUT19'  # TODO: maybe read from shards v2
+        pre_sku = 'FUT20'  # TODO: maybe read from shards v2
         if emulate == 'ios':
             sku = '%sIOS' % pre_sku
             clientVersion = 21
@@ -562,18 +562,16 @@ class Core(object):
         # personas
         data = {'filterConsoleLogin': 'true',
                 'sku': self.sku,
-                'returningUserGameYear': '2018'}  # allways year-1? or maybe current release year
+                'returningUserGameYear': '2019'}  # allways year-1? or maybe current release year
         rc = self.r.get('https://%s/%s/user/accountinfo' % (self.fut_host, self.gameUrl), params=data).json()
         # pick persona (first valid for given game_sku)
+        
         personas = rc['userAccountInfo']['personas']
-        for p in personas:
-            # self.clubs = [i for i in p['userClubList']]
-            # sort clubs by lastAccessTime (latest first but looks like ea is doing this for us(?))
-            # self.clubs.sort(key=lambda i: i['lastAccessTime'], reverse=True)
-            for c in p['userClubList']:
-                if c['skuAccessList'] and game_sku in c['skuAccessList']:
-                    self.persona_id = p['personaId']
-                    break
+        
+        #print(personas)
+        
+        self.persona_id = personas[0]['personaId']
+                  
         if not hasattr(self, 'persona_id'):
             raise FutError(reason='Error during login process (no persona found).')
 
@@ -683,8 +681,7 @@ class Core(object):
             self.r.headers['X-UT-PHISHING-TOKEN'] = self.token = rc['token']
 
         # init pin
-        self.pin = Pin(sid=self.sid, nucleus_id=self.nucleus_id, persona_id=self.persona_id, dob=self.dob[:-3],
-                       platform=platform)
+        self.pin = Pin(sid=self.sid, nucleus_id=self.nucleus_id, persona_id=self.persona_id, dob=self.dob[:-3], platform=platform)
         events = [self.pin.event('login', status='success')]
         self.pin.send(events)
 
@@ -700,10 +697,11 @@ class Core(object):
         self._ = self.base_time
         self.r.get('https://%s/%s/settings' % (self.fut_host, self.gameUrl), params={'_': self._}, timeout=self.timeout)
 
+        # print(self._usermassinfo)
         # size of piles
-        piles = self.pileSize()
-        self.tradepile_size = piles['tradepile']
-        self.watchlist_size = piles['watchlist']
+        # piles = self.pileSize()
+        # self.tradepile_size = piles['tradepile']
+        # self.watchlist_size = piles['watchlist']
 
         # refresh token
         # params = {'response_type': 'token',
@@ -722,9 +720,9 @@ class Core(object):
         self.pin.send(events)
 
         # pinEvents - boot_end  # boot_end is connected with "connection" and pops only after browser window loses focus
-        # events = [self.pin.event('connection'),
-        #           self.pin.event('boot_end', end_reason='normal')]
-        # self.pin.send(events)
+        events = [self.pin.event('connection'),
+                  self.pin.event('boot_end', end_reason='normal')]
+        self.pin.send(events)
 
         self.keepalive()  # credits
 
