@@ -196,9 +196,9 @@ def nations(timeout=timeout):
     rc.encoding = 'utf-8'  # guessing takes huge amount of cpu time
     rc = decode(rc.text)
     data = re.findall('"search.nationName.nation([0-9]+)": "([a-zA-Z\s]+)"', rc)
-    nations = {}
+    nations = []
     for i in data:
-        nations[int(i[0])] = i[1]
+        nations.append({ "country_id": int(i[0]), "country_name" : i[1]})
     return nations
 
 
@@ -211,9 +211,9 @@ def leagues(year=2020, timeout=timeout):
     rc.encoding = 'utf-8'  # guessing takes huge amount of cpu time
     rc = decode(rc.text)
     data = re.findall('"global.leagueFull.%s.league([0-9]+)": "([a-zA-Z0-9\s]+)"' % year, rc)
-    leagues = {}
+    leagues = []
     for i in data:
-        leagues[int(i[0])] = i[1]
+        leagues.append({"league_id": int(i[0]), "league_name": i[1]})
     return leagues
 
 def decode(messages):
@@ -236,9 +236,9 @@ def teams(year=2020, timeout=timeout):
     rc.encoding = 'utf-8'  # guessing takes huge amount of cpu time
     rc = decode(rc.text)
     data = re.findall('"global.teamabbr15.%s.team([0-9]+)": "([a-zA-Z\s]+)"' % year, rc)
-    teams = {}
+    teams = []
     for i in data:
-        teams[int(i[0])] = i[1]
+        teams.append({"team_id":int(i[0]) ,"team_name": i[1]})
     return teams
 
 
@@ -251,9 +251,9 @@ def stadiums(year=2020, timeout=timeout):
     rc.encoding = 'utf-8'  # guessing takes huge amount of cpu time
     rc = decode(rc.text)
     data = re.findall('"global.stadiumFull.%s.stadium([0-9]+)": "([a-zA-Z\s]+)"' % year, rc)
-    stadiums = {}
+    stadiums = []
     for i in data:
-        stadiums[int(i[0])] = i[1]
+        stadiums.append({"stadium_id": int(i[0]) ,"stadium_name": i[1]})
     return stadiums
 
 
@@ -263,9 +263,9 @@ def balls(timeout=timeout):
     rc.encoding = 'utf-8'  # guessing takes huge amount of cpu time
     rc = decode(rc.text)
     data = re.findall('"BallName_([0-9]+)": "([a-zA-Z\s]+)"', rc)
-    balls = {}
+    balls = []
     for i in data:
-        balls[int(i[0])] = i[1]
+        balls.append({"ball_id":int(i[0]),"ball_name":i[1]})
     return balls
 
 
@@ -273,14 +273,14 @@ def players(timeout=timeout):
     """Return all players in dict {id: c, f, l, n, r}.
     id, rank, nationality(?), first name, last name.
     """
-    rc = requests.get('{0}{1}.json'.format(card_info_url, 'players'), timeout=timeout).json()
-    players = {}
+    rc = requests.get(card_info_url, timeout=timeout).json()
+    players = []
     for i in rc['Players'] + rc['LegendsPlayers']:
-        players[i['id']] = {'id': i['id'],
+        players.append({'id': i['id'] ,
                             'firstname': i['f'],
                             'lastname': i['l'],
                             'surname': i.get('c'),
-                            'rating': i['r']}
+                            'rating': i['r']})
     return players
 
 
@@ -293,9 +293,9 @@ def playstyles(year=2020, timeout=timeout):
     rc.encoding = 'utf-8'  # guessing takes huge amount of cpu time
     rc = decode(rc.text)
     data = re.findall('"playstyles.playstyle([0-9]+)": "([a-zA-Z\s]+)"', rc)
-    playstyles = {}
+    playstyles = []
     for i in data:
-        playstyles[int(i[0])] = i[1]
+        playstyles.append({"playstyle_id": int(i[0]),"playstyle_name": i[1]})
     return playstyles
 
 
