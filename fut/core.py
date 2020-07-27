@@ -317,7 +317,7 @@ class Core(object):
         else:
             self.stats = None
 
-        self.gameUrl = 'ut/game/fifa19'
+        self.gameUrl = 'ut/game/fifa20'
 
         # db
         self._players = None
@@ -511,7 +511,7 @@ class Core(object):
         else:
             raise FutError(reason='Invalid emulate parameter. (Valid ones are and/ios).')  # pc/ps3/xbox/
         self.sku = sku  # TODO: use self.sku in all class
-        self.sku_b = 'FFT19'  # TODO: maybe read from shards v2
+        self.sku_b = 'FFT20'  # TODO: maybe read from shards v2
 
         # === launch futweb
         # TODO: maybe use custom locals, cause ea knows where u are coming from
@@ -561,12 +561,10 @@ class Core(object):
         # TODO: parse this and use above
         rc = self.r.get('https://%s/ut/shards/v2' % auth_url).json()
         self.fut_host = {
-            'pc': 'utas.external.s2.fut.ea.com:443',
-            'ps3': 'utas.external.s2.fut.ea.com:443',
-            'ps4': 'utas.external.s2.fut.ea.com:443',
-            'xbox': 'utas.external.s3.fut.ea.com:443',
-            # 'ios': 'utas.external.fut.ea.com:443',
-            # 'and': 'utas.external.fut.ea.com:443'
+            'pc': 'utas.external.s2.fut.ea.com',
+            'ps3': 'utas.external.s2.fut.ea.com',
+            'ps4': 'utas.external.s2.fut.ea.com',
+            'xbox': 'utas.external.s3.fut.ea.com'
         }
         self.fut_host = self.fut_host[platform]
 
@@ -627,7 +625,7 @@ class Core(object):
         self.r.headers['X-UT-SID'] = self.sid = rc['sid']
 
         # validate (secret question)
-        self.r.headers['Easw-Session-Data-Nucleus-Id'] = self.nucleus_id
+        #self.r.headers['Easw-Session-Data-Nucleus-Id'] = self.nucleus_id
         rc = self.r.get('https://%s/%s/phishing/question' % (self.fut_host, self.gameUrl),
                         timeout=self.timeout).json()
         if rc.get('code') == '458':
@@ -683,13 +681,13 @@ class Core(object):
                 # * No remaining attempt
                 print(rc['reason'])
                 raise FutError(reason='Error during login process (%s).' % (rc['reason']))
-            self.r.headers['X-UT-PHISHING-TOKEN'] = self.token = rc['token']
+            #self.r.headers['X-UT-PHISHING-TOKEN'] = self.token = rc['token']
             # ask again for question to refresh(?) token, i'm just doing what webapp is doing
             rc = self.r.get('https://%s/%s/phishing/question' % (self.fut_host, self.gameUrl), timeout=self.timeout).json()
 
             # TODO: maybe needs to set later. But in current webapp the phishing token is not needed
             # for requests after login
-            self.r.headers['X-UT-PHISHING-TOKEN'] = self.token = rc['token']
+            # self.r.headers['X-UT-PHISHING-TOKEN'] = self.token = rc['token']
 
         # init pin
         self.pin = Pin(sid=self.sid, nucleus_id=self.nucleus_id, persona_id=self.persona_id, dob=self.dob[:-3], platform=platform)
@@ -708,10 +706,10 @@ class Core(object):
         self._ = self.base_time
         self.r.get('https://%s/%s/settings' % (self.fut_host, self.gameUrl), params={'_': self._}, timeout=self.timeout)
 
-        # print(self._usermassinfo)
+        #print(self._usermassinfo)
         # size of piles
         # piles = self.pileSize()
-        # self.tradepile_size = piles['tradepile']
+        self.tradepile_size = 100
         # self.watchlist_size = piles['watchlist']
 
         # refresh token
@@ -1317,7 +1315,8 @@ class Core(object):
 
         # TODO: auto send to tradepile
         data = {'buyNowPrice': buy_now, 'startingBid': bid, 'duration': duration, 'itemData': {'id': item_id}}
-        rc = self.__request__(method, url, data=json.dumps(data), params={'sku_b': self.sku_b})
+        rc = self.__request__(method, url, data=json.dumps(data))
+                              #, params={'sku_b': self.sku_b})
         if not fast:  # tradeStatus check like webapp do
             self.tradeStatus(rc['id'])
         return rc['id']
