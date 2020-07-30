@@ -1465,6 +1465,14 @@ class Core(object):
 
         data = {'apply': [{'id': item_id}]}
         self.__request__(method, url, data=json.dumps(data))
+        
+        
+    def redeemItem(self, item_id):
+         method = 'POST'
+         url = 'item/%s' % item_id
+         data = {'apply': []}
+         self.__request__(method, url, data=json.dumps(data))
+        
 
     def keepalive(self):
         """Refresh credit amount to let know that we're still online. Returns credit amount."""
